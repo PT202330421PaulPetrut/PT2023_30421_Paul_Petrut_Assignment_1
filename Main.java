@@ -1,10 +1,11 @@
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
     public static void main(String[] args) {
-       // Polinome polinome = new Polinome();
-        // Create two polynomials represented as HashMaps
-   /*     HashMap<Integer, Float> poly1 = new HashMap<Integer, Float>();
+           Controller controller = new Controller();
+/*        HashMap<Integer, Float> poly1 = new HashMap<Integer, Float>();
         poly1.put(2, 2.0f);
         poly1.put(1, 3.0f);
         poly1.put(0, 1.0f);
@@ -14,19 +15,19 @@ public class Main {
         poly2.put(2, 1.0f);
         poly2.put(1, -1.0f);
         poly2.put(0, 2.0f);
+        Polinome polinome = new Polinome(poly1);
+        Polinome polinome2 = new Polinome(poly2);
 
-        // Call the addPolynomials method and print the result
-        HashMap<Integer, Float> result = polinome.addPolynomials(poly1, poly2);
-        System.out.println("Result of addition: " + result);
 
-        // Call the subPolynomials method and print the result
-        result = polinome.subPolynomials(poly1, poly2);
-        System.out.println("Result of subtraction: " + result);
-        */
+        Polinome result = new Polinome(polinome.addPolynomials(polinome.getPolinome(), polinome2.getPolinome()));
+        System.out.println("Result of addition: " + result.valueToString());
+
+        result.setPolinome( polinome.subPolynomials(poly1, poly2));
+        System.out.println("Result of subtraction: " + result.valueToString())*/;
 
 /*        HashMap<Integer, Float> poly1 = new HashMap<>();
         poly1.put(2, 3.0f);
-        //poly1.put(1, 4.0f);
+        poly1.put(1, 4.0f);
         poly1.put(0, 5.0f);
         HashMap<Integer, Float> poly2 = new HashMap<>();
 
@@ -37,37 +38,52 @@ public class Main {
         boolean ceva = polinome.isZeroPolynomial(poly2);
         System.out.println(result);
         System.out.println(ceva);*/
-            // create the two polynomials to divide
-            Polinome polinome = new Polinome();
+
+/*
             HashMap<Integer, Float> dividend = new HashMap<>();
             HashMap<Integer, Float> divisor = new HashMap<>();
+            dividend.put(4, 3.0f);
             dividend.put(3, 3.0f);
             dividend.put(2, -3.0f);
             dividend.put(1, 1.0f);
-            dividend.put(0, -2.0f);
+            dividend.put(0, 2.0f);
 
             divisor.put(2, 3.0f);
             divisor.put(1, 1.0f);
-            divisor.put(0, -1.0f);
-
-            // create the hashmaps for the quotient and remainder
+            divisor.put(0, 1.0f);
+            Polinome polinome = new Polinome(dividend);
+            Polinome poli2 =new Polinome(divisor);
             HashMap<Integer, Float> quotient = new HashMap<>();
             HashMap<Integer, Float> remainder = new HashMap<>();
-
-            // perform the division
             boolean divZero= true;
-            DivisionResult div = polinome.division(dividend, divisor);
+*/
+/*            System.out.println("("+polinome.valueToString()+")-("+poli2.valueToString()+")");
+
+
+            remainder=polinome.subPolynomials(poli2);
+            String test = polinome.valueToString(remainder);
+
+            System.out.println("res:"+test);*//*
+
+            DivisionResult div = polinome.division( poli2);
             quotient = div.getCat();
             remainder = div.getRest();
             divZero = div.getDivZero();
 
-            // print the results
-            System.out.println("Dividend: " + dividend);
-            System.out.println("Divisor: " + divisor);
-            System.out.println("Quotient: " + quotient);
-            System.out.println("Remainder: " + remainder);
-            System.out.println("Divide by zero: " + divZero);
+            String test = polinome.valueToString(remainder);
+            String test2 = polinome.valueToString(quotient);
+            System.out.println(test);
+            System.out.println(test2);
+            System.out.println(divZero);
+*/
 
+
+/*          String text = "x^100+3.5x^5-2.1x^3-x^1-3.0";
+            Polinome test = controller.readPolinome(text);
+            System.out.println(test.valueToString());
+            System.out.println(test.getPolinome());*/
 
     }
+
+
 }

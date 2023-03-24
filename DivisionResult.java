@@ -27,15 +27,17 @@ public class DivisionResult {
         this.cat = cat;
     }
 
-    public DivisionResult(boolean divZero) {
-        this.divZero = divZero;
-    }
-
     public boolean getDivZero() {
         return divZero;
     }
 
     public void setDivZero(boolean divZero) {
         this.divZero = divZero;
+    }
+
+    public void reset(){
+        divZero=false;
+        rest= new HashMap<Integer, Float>();
+        cat= new HashMap<Integer, Float>();
     }
 }
