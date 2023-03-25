@@ -29,10 +29,6 @@ public class Controller {
         resetPoli();
     }
 
-    public void resetPoli(){
-        polinome1=new Polinome();
-        polinome2=new Polinome();
-    }
     /*
     (?: - This is a non-capturing group, denoted by ?:, which groups together a set of regular expression elements without capturing the matched text.
     ([+-]?) - This matches an optional positive or negative sign before a number, and captures it in a capturing group denoted by ().
@@ -52,20 +48,56 @@ public class Controller {
             return polinome;
         }
 
-        Pattern pattern = Pattern.compile("(?:([+-]?)(\\d+(?:\\.\\d+)?)(x\\^(\\d+))?|(x\\^(\\d+)))");
-        //(?:([+-]?)(\d+(?:\.\d+)?)([a-z][A-Z]\^(\d+))?|([a-z][A-Z]\^(\d+)))
+        Pattern pattern = Pattern.compile("(?:([+-]?)(\\d*(?:\\.\\d+)?)?)(x(?:\\^(\\d+))?)?");
+        // the classic--"(?:([+-]?)(\\d+(?:\\.\\d+)?)(x\\^(\\d+))?|(x\\^(\\d+)))"
+
+        ///(?:([+-]?)(\d*(?:\.\d+)?)?)(x(?:\^(\d+))?)?
+
+        // (?:([+-]?)(\d+(?:\.\d+)?)(x\^(\d+))?|(x\^(\d+))|((\d+)?x\^?)) -- ala care ii pus doar ca group7 si8 in plus pt cazu 4x sau x sau x^2 NU II GATA
         Matcher matcher = pattern.matcher(text);
 
         while (matcher.find()) {
+            String debuggTEXT= matcher.group(1)+matcher.group(2)+matcher.group(3);
             String signStr = matcher.group(1);
-            String coefStr = matcher.group(2) != null ? matcher.group(2): "1";
-            String expStr = matcher.group(4) != null ? matcher.group(4) : matcher.group(6);
+            String coefficientStr;
+            String expStr;
+            int exp;
+            float sign;
+            float coefficient;
+            if(debuggTEXT.equals("null") || debuggTEXT.isBlank()) {
+                break;
+            }
+            if (matcher.group(2) != null &&!matcher.group(2).isBlank()) {
+                coefficientStr = matcher.group(2);
+            } else {
+                coefficientStr = "1";
+            }
 
-            float sign = signStr != null && signStr.equals("-") ? -1 : 1;
-            float coef = coefStr != null ? Float.parseFloat(coefStr) : 1;
-            int exp = expStr != null ? Integer.parseInt(expStr) : 0;
+            if (matcher.group(4) != null&&!matcher.group(4).isBlank()) {
+                expStr = matcher.group(4);
+            } else {
+                expStr = "1";
+            }
 
-            result.put(exp, sign * coef);
+            if (signStr != null && signStr.equals("-")) {
+                sign = -1;
+            } else {
+                sign = 1;
+            }
+
+            if (coefficientStr != null && !coefficientStr.isBlank()) {
+                coefficient = Float.parseFloat(coefficientStr);
+            } else {
+                coefficient = 1;
+            }
+            if (expStr != null && !expStr.isBlank()) {
+                exp = Integer.parseInt(expStr);
+            } else {
+                exp = 0;
+            }
+            if(!debuggTEXT.contains("x")||debuggTEXT.isBlank())exp = 0;
+
+            result.put(exp, sign * coefficient);
         }
 
         polinome.setPolinome(result);
@@ -78,11 +110,20 @@ public class Controller {
             polinome2= readPolinome(gui.getPolynome2TextField());
     }
 
+    public void resetPoli(){
+        polinome1=new Polinome();
+        polinome2=new Polinome();
+    }
     public class addSumListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             //TODO: STUFF
             setPolinoame();
+            if (!polinome1.isZeroPolynomial()) {
+                System.out.println(polinome1.valueToString() + "+" + polinome2.valueToString());
+            } else {
+                System.out.println( "Polynomial is zero");
+            }
             Polinome result = new Polinome(polinome1.addPolynomials(polinome2));
             gui.setResultTextField(result.valueToString());
             gui.setRestDivTextField("");
@@ -98,15 +139,14 @@ public class Controller {
             gui.setRestDivTextField("");
 
         }
-    }    public class addDivListener implements ActionListener {
+    }
+    public class addDivListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             //TODO: STUFF
             setPolinoame();
-            DivisionResult result = new DivisionResult();
-            System.out.println("before");
+            DivisionResult result;
             result = polinome1.division(polinome2);
-            System.out.println("after");
             if(!result.getDivZero()) {
                 Polinome rest = new Polinome(result.getRest());
                 Polinome cat = new Polinome(result.getCat());
@@ -120,7 +160,8 @@ public class Controller {
             }
 
         }
-    }    public class addMultiListener implements ActionListener {
+    }
+    public class addMultiListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             //TODO: STUFF
@@ -129,7 +170,8 @@ public class Controller {
             gui.setResultTextField(result.valueToString());
             gui.setRestDivTextField("");
         }
-    }    public class addintegrateListener implements ActionListener {
+    }
+    public class addintegrateListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             //TODO: STUFF
