@@ -1,277 +1,195 @@
-import org.jetbrains.annotations.NotNull;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
-public class Polinome {
+public class Controller {
+    private boolean division=false;
+    private GUI gui ;
+    private String input1;
+    private String input2;
+    private String result;
+    private String cat;
+    private Polinome polinome1;
+    private Polinome polinome2;
+    private DivisionResult divisionResult;
 
-    private HashMap<Integer, Float> polynomial;
-
-    public Polinome(){
-        polynomial= new HashMap<Integer, Float>();
-    }
-    public Polinome(HashMap<Integer, Float> poli){
-        polynomial= poli;
-    }
-
-    public DivisionResult division (@NotNull HashMap<Integer, Float> poly1,@NotNull HashMap<Integer, Float> poly2){
-        DivisionResult res = new DivisionResult();
-        HashMap<Integer, Float> quotient= new HashMap<Integer, Float>();
-        HashMap<Integer, Float> remainder= poly1;
-
-        if(isZeroPolynomial(poly2)){
-            res.setDivZero(true);
-            return res;
-        }
-        else res.setDivZero(false);
-
-        int degreeRest=getDegree(remainder);
-        int degreePoly2=getDegree(poly2);
-        while((!isZeroPolynomial(remainder)) && degreeRest>=degreePoly2){
-            int degreeDiff = degreeRest - degreePoly2;
-            float coefficient = remainder.get(degreeRest) / poly2.get(degreePoly2);
-            quotient.put(degreeDiff,coefficient);
-            HashMap<Integer, Float> aux= new HashMap<Integer, Float>();
-            aux.put(degreeDiff,coefficient);
-            aux =  multiplyPolynomials(poly2,aux);
-            remainder= subPolynomials(remainder, aux);
-            degreeRest= getDegree(remainder);
-            aux.put(degreeDiff,0.0f);
-
-        }
-        res.setRest(remainder);
-        res.setCat(quotient);
-        return res;
-    }
-    public DivisionResult division(HashMap<Integer, Float> poly2){
-        return division(this.polynomial,poly2);
-    }
-    public DivisionResult division(Polinome poly2){
-        return division(this.polynomial,poly2.getPolinome());
+    public Controller(){
+        gui= new GUI();
+        gui.addSumListener(new addSumListener());
+        gui.addSubListener(new addSubListener());
+        gui.addMutiListener(new addMultiListener());
+        gui.addDivListener(new addDivListener());
+        gui.addintegrateListener(new addintegrateListener());
+        gui.addDerivateListener(new addDerivateListener());
+        gui.setVisible(true);
+        resetPoli();
     }
 
-    public int getDegree(HashMap<Integer, Float> poly1){
-        int maxPower=0;
-        for (Map.Entry<Integer, Float> entry : poly1.entrySet()) {
-            Integer power = entry.getKey();
-            Float coefficent = entry.getValue();
-            if (maxPower < power && coefficent != 0.000f) {
-                maxPower = power;
-            }
-        }
-        return maxPower;
-    }
-    public int getDegree(Polinome poli1){
-        return getDegree(poli1.getPolinome());
-    }
-
-    public @NotNull HashMap<Integer, Float> derivate(@NotNull HashMap<Integer, Float> poly1){
-        HashMap<Integer, Float> result =  new HashMap<Integer, Float>();
-        if(isZeroPolynomial(poly1))
-        {
-            return poly1;
-        }
-        poly1.forEach((degree,coefficient)-> {
-            if(coefficient!=0&& degree!=0){   // if degree==0 the it is not .put in result
-                    result.put(degree-1,coefficient*(degree));
-            }
-        });
-
-        return result;
-    }
-    public @NotNull HashMap<Integer, Float> derivate(){
-        return derivate(this.getPolinome());
-    }
-
-    public @NotNull HashMap<Integer, Float> integrate(@NotNull HashMap<Integer, Float> poly1){
-        HashMap<Integer, Float> result =  new HashMap<Integer, Float>();
-        if(isZeroPolynomial(poly1)){
-            result.put(1,1.0f);
-            return result;
-        }
-        poly1.forEach((degree,coefficient)-> {
-            if(coefficient!=0){
-                result.put(degree+1,coefficient/(degree+1));
-            }
-        });
-        return result;
-    }
-    public @NotNull HashMap<Integer, Float> integrate(){
-        return integrate(this.getPolinome());
-    }
-
-    public @NotNull HashMap<Integer, Float> multiplyPolynomials( HashMap<Integer, Float> poly1,  HashMap<Integer, Float> poly2){
+    /*
+    (?: - This is a non-capturing group, denoted by ?:, which groups together a set of regular expression elements without capturing the matched text.
+    ([+-]?) - This matches an optional positive or negative sign before a number, and captures it in a capturing group denoted by ().
+    (\\d+(?:\\.\\d+)?) - This matches a number, which can have an optional decimal part, and captures it in a capturing group.
+    (x\\^(\\d+))? - This matches an optional exponent part in the form of x^<number>, and captures the exponent value in a capturing group.
+    | - This is an alternation operator that allows the regular expression to match either the previous or next set of regular expression elements.
+    (x\\^(\\d+)) - This matches an exponent part in the form of x^<number>, and captures the exponent value in a capturing group.
+    */
+    // input be like: x^5+3x^3 -2x^2+x-3
+    public  Polinome readPolinome(String text) {
+        Polinome polinome = new Polinome();
         HashMap<Integer, Float> result = new HashMap<Integer, Float>();
 
-        for (Map.Entry<Integer, Float> term1 : poly1.entrySet()){
-            for (Map.Entry<Integer, Float> term2 : poly2.entrySet()) {
-                int degree = term2.getKey()+term1.getKey();
-                float coefficient = term1.getValue()*term2.getValue();
-                    if (result.containsKey(degree)) {
-                    coefficient += result.get(degree);
-                    }
-                result.put(degree, coefficient);
+        text = text.replaceAll("\\s", "");
+
+        if (text.isEmpty() || text.isBlank()) {
+            return polinome;
+        }
+
+        Pattern pattern = Pattern.compile("(?:([+-]?)(\\d*(?:\\.\\d+)?)?)(x(?:\\^(\\d+))?)?");
+        // the classic--"(?:([+-]?)(\\d+(?:\\.\\d+)?)(x\\^(\\d+))?|(x\\^(\\d+)))"
+
+        ///(?:([+-]?)(\d*(?:\.\d+)?)?)(x(?:\^(\d+))?)?
+
+        // (?:([+-]?)(\d+(?:\.\d+)?)(x\^(\d+))?|(x\^(\d+))|((\d+)?x\^?)) -- ala care ii pus doar ca group7 si8 in plus pt cazu 4x sau x sau x^2 NU II GATA
+        Matcher matcher = pattern.matcher(text);
+
+        while (matcher.find()) {
+            String debuggTEXT= matcher.group(1)+matcher.group(2)+matcher.group(3);
+            String signStr = matcher.group(1);
+            String coefficientStr;
+            String expStr;
+            int exp;
+            float sign;
+            float coefficient;
+            if(debuggTEXT.equals("null") || debuggTEXT.isBlank()) {
+                break;
             }
-        }
-        return result;
-    }
-    public @NotNull HashMap<Integer, Float> multiplyPolynomials(HashMap<Integer, Float> poly2){
-        return multiplyPolynomials(this.polynomial,poly2);
-    }
-    public @NotNull HashMap<Integer, Float> multiplyPolynomials(Polinome poly2){
-        return multiplyPolynomials(this.polynomial,poly2.getPolinome());
-    }
-
-    public @NotNull HashMap<Integer, Float> addPolynomials( HashMap<Integer, Float> poly1,  HashMap<Integer, Float> poly2) {
-        HashMap<Integer, Float> result = poly1;
-        // Iterate over the second polynomial and add its terms to the result
-        for (Map.Entry<Integer, Float> term2 : poly2.entrySet()) {
-            int degree = term2.getKey();
-            float coefficient = (float) 0.0;
-                coefficient+= term2.getValue();
-            if (result.containsKey(degree)) {
-                coefficient += result.get(degree);
-            }
-                result.put(degree, coefficient);
-        }
-        return result;
-    }
-    public @NotNull HashMap<Integer, Float> addPolynomials(HashMap<Integer, Float> poly2){
-        return addPolynomials(this.polynomial,poly2);
-    }
-    public @NotNull HashMap<Integer, Float> addPolynomials(Polinome poly2){
-        return addPolynomials(this.polynomial,poly2.getPolinome());
-    }
-
-    public HashMap<Integer, Float> negate (HashMap<Integer, Float> poly1){
-        HashMap<Integer, Float> result= new  HashMap<Integer, Float>();
-        for (Map.Entry<Integer, Float> term1 : poly1.entrySet()) {
-            int degree = term1.getKey();
-            float coefficient = -term1.getValue();
-            result.put(degree,coefficient);
-        }
-
-        return result;
-    }
-
-    public @NotNull HashMap<Integer, Float> subPolynomials(HashMap<Integer, Float> poly1, HashMap<Integer, Float> poly2) {
-        HashMap<Integer, Float> result ;
-        HashMap<Integer, Float> negate ;
-        negate = negate(poly2);
-        //System.out.println("Negate: "+negate);
-        result=addPolynomials(poly1, negate);
-       // System.out.println("Res add subP(): "+result);
-
-/*        for (Map.Entry<Integer, Float> term1 : poly1.entrySet()) {
-            int degree = term1.getKey();
-            float coefficient = term1.getValue();
-
-            if (poly2.containsKey(degree)) {
-                coefficient -= poly2.get(degree);
-            }
-            result.put(degree, coefficient);
-        }
-
-        for (Map.Entry<Integer, Float> term2 : poly2.entrySet()) {
-            int degree = term2.getKey();
-            float coefficient = -term2.getValue();
-
-            if (!result.containsKey(degree)) {
-                result.put(degree, coefficient);
+            if (matcher.group(2) != null &&!matcher.group(2).isBlank()) {
+                coefficientStr = matcher.group(2);
             } else {
-                float existingCoefficient = result.get(degree);
-                result.put(degree, existingCoefficient + coefficient);
+                coefficientStr = "1";
             }
-        }*/
 
-        return result;
-    }
-    /*    public @NotNull HashMap<Integer, Float> subPolynomials(HashMap<Integer, Float> poly1, HashMap<Integer, Float> poly2) {
-        HashMap<Integer, Float> result = poly1;
-
-        for (Map.Entry<Integer, Float> term2 : poly2.entrySet()) {
-            int degree = term2.getKey();
-            float coefficient = -term2.getValue();
-
-            if(result.containsKey(degree)) {
-                coefficient += result.get(degree);
+            if (matcher.group(4) != null&&!matcher.group(4).isBlank()) {
+                expStr = matcher.group(4);
+            } else {
+                expStr = "1";
             }
-            else result.put(degree,-poly2.get(degree));
-            result.put(degree, coefficient);
 
-        }
-
-        return result;
-    }*/
-    public @NotNull HashMap<Integer, Float> subPolynomials(HashMap<Integer, Float> poly2){
-        return subPolynomials(this.polynomial,poly2);
-    }
-    public @NotNull HashMap<Integer, Float> subPolynomials(Polinome poly2){
-        return subPolynomials(this.polynomial,poly2.getPolinome());
-    }
-
-    public boolean isZeroPolynomial(HashMap<Integer, Float> polynomial) {
-        if (polynomial == null) {
-            return true;
-        }
-
-        for (float coefficient : polynomial.values()) {
-            if (coefficient != 0) {
-                return false;
+            if (signStr != null && signStr.equals("-")) {
+                sign = -1;
+            } else {
+                sign = 1;
             }
-        }
 
-        return true;
-    }
-    public boolean isZeroPolynomial(){
-        return isZeroPolynomial(this.polynomial);
-    }
-
-    public String valueToString(HashMap<Integer, Float> value){
-        if(isZeroPolynomial(value)==true)
-        {
-            return "";
-        }
-        String str= value.toString();
-        String bun="";
-        boolean plus= false;
-        str = str.substring(1, str.length() - 1); // remove curly braces
-        String[] substrings = str.split(", "); // split using comma and space
-
-        for (String substring : substrings) {
-            String[] parts = substring.split("="); // split at =
-            int power = Integer.parseInt(parts[0]);
-            float coeff = Float.parseFloat(parts[1]);
-            if(coeff!=0.0f) {
-                if (power != 0) {
-                    if (plus)
-                        bun = coeff + "x^" + power + " +" + bun;
-                    else
-                        bun = coeff + "x^" + power + " " + bun;
-                    if (coeff > 0.0f) plus = true;
-                    else plus = false;
-                } else if (coeff < 0.0f) bun = coeff + bun;
-                else bun = "+"+coeff+bun;
+            if (coefficientStr != null && !coefficientStr.isBlank()) {
+                coefficient = Float.parseFloat(coefficientStr);
+            } else {
+                coefficient = 1;
             }
+            if (expStr != null && !expStr.isBlank()) {
+                exp = Integer.parseInt(expStr);
+            } else {
+                exp = 0;
+            }
+            if(!debuggTEXT.contains("x")||debuggTEXT.isBlank())exp = 0;
+
+            result.put(exp, sign * coefficient);
         }
 
-        return bun;
-    }
-    public String valueToString(){
-        return valueToString(this.polynomial);
+        polinome.setPolinome(result);
+        return polinome;
     }
 
-    public void reset(){
-        polynomial.clear();
-        this.polynomial= new HashMap<Integer, Float>();
+    public void setPolinoame(){
+            resetPoli();
+            polinome1= readPolinome(gui.getPolynome1TextField());
+            polinome2= readPolinome(gui.getPolynome2TextField());
     }
 
-    public void setPolinome(HashMap polinome) {
-        this.polynomial = polinome;
+    public void resetPoli(){
+        polinome1=new Polinome();
+        polinome2=new Polinome();
     }
-
-    public HashMap getPolinome() {
-        return polynomial;
+    public class addSumListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO: STUFF
+            setPolinoame();
+            if (!polinome1.isZeroPolynomial()) {
+                System.out.println(polinome1.valueToString() + "+" + polinome2.valueToString());
+            } else {
+                System.out.println( "Polynomial is zero");
+            }
+            Polinome result = new Polinome(polinome1.addPolynomials(polinome2));
+            gui.setResultTextField(result.valueToString());
+            gui.setRestDivTextField("");
+        }
     }
+    public class addSubListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO: STUFF
+            setPolinoame();
+            Polinome result = new Polinome(polinome1.subPolynomials(polinome2));
+            gui.setResultTextField(result.valueToString());
+            gui.setRestDivTextField("");
 
+        }
+    }
+    public class addDivListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO: STUFF
+            setPolinoame();
+            DivisionResult result;
+            result = polinome1.division(polinome2);
+            if(!result.getDivZero()) {
+                Polinome rest = new Polinome(result.getRest());
+                Polinome cat = new Polinome(result.getCat());
+                gui.setResultTextField(cat.valueToString());
+                gui.setRestDivTextField(rest.valueToString());
+            }
+            else{
+                gui.setResultTextField("");
+                gui.setRestDivTextField("");
+                JOptionPane.showMessageDialog(null, "Division with 0!");
+            }
+
+        }
+    }
+    public class addMultiListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO: STUFF
+            setPolinoame();
+            Polinome result = new Polinome(polinome1.multiplyPolynomials(polinome2));
+            gui.setResultTextField(result.valueToString());
+            gui.setRestDivTextField("");
+        }
+    }
+    public class addintegrateListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO: STUFF
+            setPolinoame();
+            polinome1.integrate();
+            Polinome result = new Polinome(polinome1.integrate());
+            gui.setResultTextField(result.valueToString());
+            gui.setRestDivTextField("");
+        }
+    }
+    public class addDerivateListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            //TODO: STUFF
+            setPolinoame();
+            Polinome result = new Polinome(polinome1.derivate());
+            gui.setResultTextField(result.valueToString());
+            gui.setRestDivTextField("");
+        }
+    }
 }
