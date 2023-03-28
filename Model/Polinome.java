@@ -89,7 +89,6 @@ public class Polinome {
     public @NotNull HashMap<Integer, Float> integrate(@NotNull HashMap<Integer, Float> poly1){
         HashMap<Integer, Float> result =  new HashMap<Integer, Float>();
         if(isZeroPolynomial(poly1)){
-            result.put(1,1.0f);
             return result;
         }
         poly1.forEach((degree,coefficient)-> {
